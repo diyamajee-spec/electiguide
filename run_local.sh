@@ -35,3 +35,5 @@ else
     echo "Please install Node.js (npx) or Python to run this project locally."
     exit 1
 fi
+
+
