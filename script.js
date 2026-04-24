@@ -12,9 +12,27 @@ const state = {
 // Google Maps Initialization
 function initMap() {
     try {
+        // Check if API key is still the placeholder
+        const scriptTags = document.querySelectorAll('script');
+        let hasPlaceholder = false;
+        scriptTags.forEach(s => {
+            if (s.src.includes('YOUR_API_KEY')) hasPlaceholder = true;
+        });
+
+        if (hasPlaceholder) {
+            console.warn("Google Maps API Key is missing or using placeholder.");
+            const mapVisual = document.getElementById('map-visual');
+            if (mapVisual) {
+                mapVisual.innerHTML = `<div class="map-error-msg">
+                    <p>📍 Map placeholder is active.</p>
+                    <small>To enable the live map, please replace <code>YOUR_API_KEY</code> in <code>index.html</code> with a valid Google Maps API Key.</small>
+                </div>`;
+            }
+        }
+
         const mapOptions = {
-            center: { lat: 39.8283, lng: -98.5795 }, // Center of USA
-            zoom: 4,
+            center: { lat: 20.5937, lng: 78.9629 }, // Center of India
+            zoom: 5,
             styles: [
                 { "elementType": "geometry", "stylers": [{ "color": "#1e293b" }] },
                 { "elementType": "labels.text.fill", "stylers": [{ "color": "#94a3b8" }] },
@@ -74,9 +92,9 @@ async function generateRoadmap() {
     roadmapResult.classList.remove('hidden');
     roadmapText.innerHTML = '<div class="roadmap-loader"></div> <p>Syncing with election databases and analyzing your profile...</p>';
 
-    const prompt = `Generate a detailed 4-step personalized election roadmap for a user who is ${registered === 'yes' ? 'already' : 'not'} registered and has a ${knowledge} knowledge level. 
-    ${registered === 'no' ? 'Focus heavily on the registration process, including: 1. Eligibility criteria, 2. Online/Offline registration methods, 3. Typical deadlines, and 4. Required documents (like Social Security or ID).' : 'Focus on: 1. In-depth candidate research, 2. Polling place verification, 3. Voter ID rules, and 4. Getting to the polls.'} 
-    Use bullet points for sub-steps. Keep it encouraging and high-impact.`;
+    const prompt = `Generate a detailed 4-step personalized Indian election roadmap for a user who is ${registered === 'yes' ? 'already' : 'not'} registered and has a ${knowledge} knowledge level. 
+    ${registered === 'no' ? 'Focus heavily on the registration process via NVSP (National Voters Service Portal), including: 1. Eligibility criteria (18+), 2. Form 6 submission, 3. Typical deadlines, and 4. Required documents (Aadhaar, Age proof, Address proof).' : 'Focus on: 1. EPIC card download/verification, 2. Finding booth via ECI Voter Portal, 3. Knowing your candidates, and 4. VVPAT/EVM process.'} 
+    Use bullet points for sub-steps. Keep it encouraging and high-impact. Mention the Election Commission of India (ECI).`;
 
     try {
         const response = await getGeminiResponse(prompt);
@@ -405,11 +423,11 @@ function updateJourneyPath(percentage) {
 }
 
 const milestones = {
-    1: { title: "Eligibility Check", desc: "Before you start, ensure you meet the legal requirements: Citizenship, age (18+), and residency.", btn: "Check Requirements", action: () => { logAction('status', 'Initiated eligibility check.'); scrollToSection('assistant'); } },
-    2: { title: "Voter Registration", desc: "Registering is the bridge to participation. Most states allow online registration, taking less than 2 minutes.", btn: "Register Now", action: () => { logAction('registration', 'Redirected to vote.gov for registration.'); window.open('https://vote.gov', '_blank'); } },
-    3: { title: "Informed Research", desc: "Knowledge is power. Research candidates and ballot measures using non-partisan guides like Vote411.", btn: "Find Guides", action: () => { logAction('status', 'Started candidate research on Vote411.'); window.open('https://www.vote411.org/', '_blank'); } },
-    4: { title: "Locate Polling", desc: "Plan your trip. Use our interactive map below to find your assigned polling station or drop box.", btn: "Open Map", action: () => { logAction('polling', 'Navigated to polling map.'); scrollToSection('map'); } },
-    5: { title: "Cast Your Vote", desc: "The big day! Bring your required ID and follow your state's procedures for a smooth experience.", btn: "View ID Rules", action: () => { logAction('status', 'Checking ID requirements.'); scrollToSection('assistant'); } }
+    1: { title: "Eligibility Check", desc: "Before you start, ensure you meet the legal requirements: Indian Citizenship, age 18+, and being a resident of the polling area.", btn: "Check Requirements", action: () => { logAction('status', 'Initiated eligibility check.'); scrollToSection('assistant'); } },
+    2: { title: "Voter Registration", desc: "Apply via Form 6 on the NVSP portal. It's the essential step to getting your EPIC (Voter ID) card.", btn: "Register on NVSP", action: () => { logAction('registration', 'Redirected to NVSP portal for registration.'); window.open('https://www.nvsp.in/', '_blank'); } },
+    3: { title: "Know Your Candidate", desc: "Informed voters make a difference. Check candidate affidavits and details on the 'Know Your Candidates' (KYC) app or ECI website.", btn: "Research Candidates", action: () => { logAction('status', 'Started candidate research on ECI website.'); window.open('https://voters.eci.gov.in/', '_blank'); } },
+    4: { title: "Locate Booth", desc: "Plan your trip. Use our interactive map below or the ECI Voter Search to find your assigned polling booth.", btn: "Open Map", action: () => { logAction('polling', 'Navigated to polling map.'); scrollToSection('map'); } },
+    5: { title: "Cast Your Vote", desc: "Carry your EPIC card or alternative photo ID. Understand the EVM and VVPAT process for a smooth experience.", btn: "View ID Rules", action: () => { logAction('status', 'Checking ID requirements.'); scrollToSection('assistant'); } }
 };
 
 function showMilestone(id) {

@@ -828,3 +828,24 @@ body {
         margin-top: 60px;
     }
 }
+
+/* Map Error Styling */
+.map-error-msg {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 20px;
+    text-align: center;
+    background: rgba(15, 23, 42, 0.8);
+    color: #94a3b8;
+    border-radius: 12px;
+}
+
+.map-error-msg code {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--primary);
+}
