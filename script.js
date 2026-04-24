@@ -11,22 +11,76 @@ const state = {
 };
 
 /**
- * Mock Firebase Configuration for Google Cloud Adoption Scoring
- * In a production app, this would use actual Firebase SDK initialization.
+ * REAL Google Cloud / Firebase Services Integration
  */
-const FirebaseMock = {
-    init: function() {
-        console.log("☁️ Initializing Google Cloud Firebase Services...");
-        // Simulating cloud connectivity
-        setTimeout(() => {
-            state.firebaseInitialized = true;
-            console.log("✅ Firebase Auth & Firestore Ready (Cloud Sync Active)");
-        }, 1500);
+const CloudServices = {
+    config: {
+        apiKey: "AIzaSyAhVUkFYG4EEvcKUTSwgIk-G8l9EL7n0hw",
+        authDomain: "justice-ai-workflow.firebaseapp.com",
+        projectId: "justice-ai-workflow",
+        storageBucket: "justice-ai-workflow.firebasestorage.app",
+        messagingSenderId: "603250355115",
+        appId: "1:603250355115:web:82191940989b6574f0c43d",
+        measurementId: "G-6SPS0XG9L9"
     },
-    logEvent: function(eventName, params) {
-        if (state.firebaseInitialized) {
-            console.log(`📊 [Cloud Analytics] Event: ${eventName}`, params);
+    db: null,
+    user: null,
+
+    init: async function() {
+        console.log("☁️ Initializing Live Google Cloud Services...");
+        try {
+            if (!firebase.apps.length) {
+                firebase.initializeApp(this.config);
+            }
+            this.db = firebase.firestore();
+            
+            // Anonymous Auth for seamless user sessions
+            const cred = await firebase.auth().signInAnonymously();
+            this.user = cred.user;
+            state.firebaseInitialized = true;
+            console.log("✅ Cloud Connected: Anonymous Session", this.user.uid);
+            
+            // Sync existing logs to cloud if any
+            this.syncLogs();
+        } catch (error) {
+            console.error("❌ Cloud Connection Failed:", error);
         }
+    },
+
+    logEvent: function(eventName, params) {
+        if (state.firebaseInitialized && this.db) {
+            this.db.collection('analytics').add({
+                event: eventName,
+                userId: this.user.uid,
+                params: params,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            console.log(`📊 [Cloud Analytics] Recorded: ${eventName}`);
+        }
+    },
+
+    syncLogs: async function() {
+        if (!state.firebaseInitialized || !this.db) return;
+        
+        const localLogs = JSON.parse(localStorage.getItem('civic_logs') || '[]');
+        const userRef = this.db.collection('users').doc(this.user.uid);
+        
+        await userRef.set({
+            lastActive: firebase.firestore.FieldValue.serverTimestamp(),
+            totalLogs: localLogs.length
+        }, { merge: true });
+
+        // Batch upload local logs to cloud
+        const batch = this.db.batch();
+        localLogs.forEach(log => {
+            const logRef = userRef.collection('activity_logs').doc(log.id.toString());
+            batch.set(logRef, {
+                ...log,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        });
+        await batch.commit();
+        console.log("🔄 Cloud Sync: Logs synchronized to Firestore");
     }
 };
 
@@ -135,7 +189,7 @@ async function generateRoadmap() {
         state.roadmapGenerated = true;
         
         // Cloud Analytics
-        FirebaseMock.logEvent('roadmap_generated', { registered, knowledge });
+        CloudServices.logEvent('roadmap_generated', { registered, knowledge });
 
         // Auto-scroll to result and highlight milestone
         if (registered === 'no') {
@@ -264,7 +318,7 @@ async function searchMap() {
     list.style.opacity = '0.5';
     
     // Cloud Analytics
-    FirebaseMock.logEvent('map_search', { query: pincode });
+    CloudServices.logEvent('map_search', { query: pincode });
 
     // Check if Google Maps is fully initialized (map and geocoder)
     if (!state.geocoder || !state.map || !window.google) {
@@ -550,14 +604,14 @@ function updateClock() {
 
 // Run initialization
 document.addEventListener('DOMContentLoaded', () => {
-    FirebaseMock.init();
+    CloudServices.init();
     initApp();
     updateClock();
     setInterval(updateClock, 1000);
 });
 // If content already loaded (e.g. script is at bottom)
 if (document.readyState !== 'loading') {
-    FirebaseMock.init();
+    CloudServices.init();
     initApp();
     updateClock();
     setInterval(updateClock, 1000);

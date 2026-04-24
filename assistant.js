@@ -23,7 +23,7 @@ async function sendMessage() {
     userInput.value = '';
 
     // Cloud Analytics
-    FirebaseMock.logEvent('chat_message_sent', { length: cleanText.length });
+    CloudServices.logEvent('chat_message_sent', { length: cleanText.length });
 
     // Show typing indicator
     const typingId = appendMessage('ai', 'Thinking...', true);
