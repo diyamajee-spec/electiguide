@@ -2,8 +2,6 @@
 
 ElectiGuide is a state-of-the-art civic tech platform designed to turn first-time voters into lifelong participants in democracy. Built for the **#BuildwithAI #PromptWarsVirtual** hackathon, it provides a personalized, multimodal experience powered by cutting-edge Google AI.
 
-**ElectiGuide is optimized for a 100% score across Code Quality, Security, Testing, Accessibility, and Google Services integration.**
-
 ---
 
 ## 🏆 Core Features
@@ -30,7 +28,7 @@ A custom-built, premium **Polling Map** integration that helps users visualize t
 
 ---
 
-## 🛡️ Security & Reliability (100% Score)
+## 🛡️ Security & Reliability
 ElectiGuide implements industry-standard security protocols:
 - **Content Security Policy (CSP)**: Strict policy to prevent XSS and unauthorized script execution.
 - **Input Sanitization**: Global sanitization engine for all user-facing inputs.
